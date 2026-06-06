@@ -458,7 +458,16 @@
   </style>
 </head>
 <body>
+<!-- GENDER GATEWAY -->
+<div id="gender-gateway" style="position:fixed; inset:0; z-index:1000; background:var(--bg); display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;">
+    <h1 style="font-size:2rem; margin-bottom: 2rem;">What team are you for?</h1>
+    <div style="display:flex; gap:20px;">
+      <button onclick="setGender('men')" style="padding:20px 40px; font-size:1.2rem; cursor:pointer; background:var(--accent); color:#fff; border:none; border-radius:10px;">Men's Soccer</button>
+      <button onclick="setGender('women')" style="padding:20px 40px; font-size:1.2rem; cursor:pointer; background:var(--accent2); color:#fff; border:none; border-radius:10px;">Women's Soccer</button>
+    </div>
+</div>
 
+<div id="app-content" style="display: none;">
 <!-- NAV -->
 <nav>
   <div class="nav-brand">scor<span>me</span></div>
@@ -617,6 +626,7 @@
 <footer>
   <p>© 2025 Scorme — Connecting Athletes with Their Perfect College Program</p>
 </footer>
+</div> <!-- /app-content -->
 
 <!-- SAVED LIST MODAL -->
 <div class="modal-overlay" id="saved-modal">
@@ -630,60 +640,50 @@
 </div>
 
 <script>
+// Gender Preference Logic
+let genderPreference = localStorage.getItem('scorme-gender') || null;
+
+if (genderPreference) {
+    document.getElementById('gender-gateway').style.display = 'none';
+    document.getElementById('app-content').style.display = 'block';
+}
+
+function setGender(g) {
+  genderPreference = g;
+  localStorage.setItem('scorme-gender', g);
+  document.getElementById('gender-gateway').style.display = 'none';
+  document.getElementById('app-content').style.display = 'block';
+  renderColleges();
+}
 // ============ COLLEGE DATA ============
+// Data with Gender Tags
 const colleges = [
-  { name: "University of North Carolina", code: "UNC", division: "D1", state: "NC", city: "Chapel Hill", rosterSpots: 3, positions: ["GK", "DEF", "MID", "FWD"], coachEmail: "coach@unc-soccer.edu", conference: "ACC" },
-  { name: "University of UCLA", code: "UCLA", division: "D1", state: "CA", city: "Los Angeles", rosterSpots: 2, positions: ["GK", "DEF"], coachEmail: "recruiting@ucla.edu", conference: "Pac-12" },
-  { name: "Stanford University", code: "STAN", division: "D1", state: "CA", city: "Stanford", rosterSpots: 1, positions: ["MID", "FWD"], coachEmail: "soccer@stanford.edu", conference: "Pac-12" },
-  { name: "University of Maryland", code: "MD", division: "D1", state: "MD", city: "College Park", rosterSpots: 4, positions: ["GK", "DEF", "MID", "FWD"], coachEmail: "terpsoccer@umd.edu", conference: "Big Ten" },
-  { name: "University of Indiana", code: "IU", division: "D1", state: "IN", city: "Bloomington", rosterSpots: 2, positions: ["DEF", "MID"], coachEmail: "coach@iu-soccer.edu", conference: "Big Ten" },
-  { name: "University of Virginia", code: "UVA", division: "D1", state: "VA", city: "Charlottesville", rosterSpots: 3, positions: ["GK", "FWD"], coachEmail: "woccer@virginia.edu", conference: "ACC" },
-  { name: "University of Florida", code: "UF", division: "D1", state: "FL", city: "Gainesville", rosterSpots: 5, positions: ["GK", "DEF", "MID", "FWD"], coachEmail: "gatorsoccer@ufl.edu", conference: "SEC" },
-  { name: "University of Texas", code: "TEX", division: "D1", state: "TX", city: "Austin", rosterSpots: 2, positions: ["DEF", "MID"], coachEmail: "longhornsoccer@utexas.edu", conference: "Big 12" },
-  { name: "University of Penn State", code: "PSU", division: "D1", state: "PA", city: "University Park", rosterSpots: 3, positions: ["GK", "DEF", "FWD"], coachEmail: "soccer@psu.edu", conference: "Big Ten" },
-  { name: "University of Washington", code: "UW", division: "D1", state: "WA", city: "Seattle", rosterSpots: 1, positions: ["MID"], coachEmail: "huskysoccer@uw.edu", conference: "Pac-12" },
-  { name: "Santa Clara University", code: "SCU", division: "D1", state: "CA", city: "Santa Clara", rosterSpots: 2, positions: ["GK", "DEF"], coachEmail: "broncossoccer@scu.edu", conference: "WCC" },
-  { name: "University of Dayton", code: "DAY", division: "D1", state: "OH", city: "Dayton", rosterSpots: 4, positions: ["DEF", "MID", "FWD"], coachEmail: "flyersoccer@udayton.edu", conference: "A-10" },
-  { name: "Xavier University", code: "XU", division: "D1", state: "OH", city: "Cincinnati", rosterSpots: 2, positions: ["GK", "FWD"], coachEmail: "musketeersoccer@xavier.edu", conference: "Big East" },
-  { name: "University of New Mexico", code: "UNM", division: "D1", state: "NM", city: "Albuquerque", rosterSpots: 3, positions: ["DEF", "MID", "FWD"], coachEmail: "lobososoccer@unm.edu", conference: "Mountain West" },
-  { name: "University of South Carolina", code: "SC", division: "D1", state: "SC", city: "Columbia", rosterSpots: 2, positions: ["GK", "DEF"], coachEmail: "gamecocksoccer@sc.edu", conference: "SEC" },
-  // D2 Schools
-  { name: "Seattle University", code: "SEA", division: "D2", state: "WA", city: "Seattle", rosterSpots: 4, positions: ["GK", "DEF", "MID", "FWD"], coachEmail: "redhawksoccer@seattleu.edu", conference: "WAC" },
-  { name: "University of Southern Maine", code: "USM", division: "D2", state: "ME", city: "Gorham", rosterSpots: 3, positions: ["GK", "DEF", "MID"], coachEmail: "wolvesoccer@usm.maine.edu", conference: "NE-10" },
-  { name: "University of Minnesota Duluth", code: "UMD", division: "D2", state: "MN", city: "Duluth", rosterSpots: 2, positions: ["DEF", "FWD"], coachEmail: "bulldogsoccer@umn.edu", conference: "NSIC" },
-  { name: "University of Findlay", code: "FIN", division: "D2", state: "OH", city: "Findlay", rosterSpots: 5, positions: ["GK", "DEF", "MID", "FWD"], coachEmail: "oilersoccer@findlay.edu", conference: "GLIAC" },
-  { name: "Cal State Dominguez Hills", code: "CSUDH", division: "D2", state: "CA", city: "Carson", rosterSpots: 3, positions: ["GK", "MID", "FWD"], coachEmail: "torossoccer@csudh.edu", conference: "CCAA" },
-  { name: "Union College (KY)", code: "UC", division: "D2", state: "KY", city: "Barbourville", rosterSpots: 4, positions: ["DEF", "MID", "FWD"], coachEmail: "tigersoccer@union.edu", conference: "G-MAC" },
-  { name: "Rockhurst University", code: "RH", division: "D2", state: "MO", city: "Kansas City", rosterSpots: 2, positions: ["GK", "DEF"], coachEmail: "hawksoccer@rockhurst.edu", conference: "GLVC" },
-  { name: "West Chester University", code: "WCU", division: "D2", state: "PA", city: "West Chester", rosterSpots: 3, positions: ["MID", "FWD"], coachEmail: "goldensoccer@wcupa.edu", conference: "PSAC" },
-  { name: "University of Southern Indiana", code: "USI", division: "D2", state: "IN", city: "Evansville", rosterSpots: 4, positions: ["GK", "DEF", "MID", "FWD"], coachEmail: "eaglesoccer@usi.edu", conference: "GLVC" },
-  { name: "Angelo State University", code: "ASU", division: "D2", state: "TX", city: "San Angelo", rosterSpots: 2, positions: ["DEF", "MID"], coachEmail: "ramsoccer@angelo.edu", conference: "Lone Star" },
-  // D3 Schools
-  { name: "Tufts University", code: "TUFTS", division: "D3", state: "MA", city: "Medford", rosterSpots: 3, positions: ["GK", "DEF", "FWD"], coachEmail: "jumbossoccer@tufts.edu", conference: "NESCAC" },
-  { name: "Amherst College", code: "AMH", division: "D3", state: "MA", city: "Amherst", rosterSpots: 2, positions: ["MID", "FWD"], coachEmail: "mammothsoccer@amherst.edu", conference: "NESCAC" },
-  { name: "Washington & Lee University", code: "W&L", division: "D3", state: "VA", city: "Lexington", rosterSpots: 4, positions: ["GK", "DEF", "MID", "FWD"], coachEmail: "generalsoccer@wlu.edu", conference: "ODAC" },
-  { name: "University of Chicago", code: "UChi", division: "D3", state: "IL", city: "Chicago", rosterSpots: 2, positions: ["GK", "DEF"], coachEmail: "maroonsoccer@uchicago.edu", conference: "UAA" },
-  { name: "Carleton College", code: "CAR", division: "D3", state: "MN", city: "Northfield", rosterSpots: 3, positions: ["MID", "FWD"], coachEmail: "knightsoccer@carleton.edu", conference: "MIAC" },
-  { name: "Emory University", code: "EMU", division: "D3", state: "GA", city: "Atlanta", rosterSpots: 2, positions: ["GK", "DEF"], coachEmail: "eaglessoccer@emory.edu", conference: "UAA" },
-  { name: "Ohio Wesleyan University", code: "OWU", division: "D3", state: "OH", city: "Delaware", rosterSpots: 5, positions: ["GK", "DEF", "MID", "FWD"], coachEmail: "battling bishopsoccer@owu.edu", conference: "NCAC" },
-  { name: "St. Olaf College", code: "STO", division: "D3", state: "MN", city: "Northfield", rosterSpots: 3, positions: ["GK", "MID", "FWD"], coachEmail: "olesoccer@stolaf.edu", conference: "MIAC" },
-  { name: "Wesleyan University (CT)", code: "WES", division: "D3", state: "CT", city: "Middletown", rosterSpots: 2, positions: ["DEF", "FWD"], coachEmail: "cardinalsoccer@wesleyan.edu", conference: "NESCAC" },
-  // NAIA Schools
-  { name: "Azusa Pacific University", code: "APU", division: "NAIA", state: "CA", city: "Azusa", rosterSpots: 4, positions: ["GK", "DEF", "MID", "FWD"], coachEmail: "cougarsoccer@apu.edu", conference: "GSAC" },
-  { name: "MidAmerica Nazarene University", code: "MNU", division: "NAIA", state: "KS", city: "Olathe", rosterSpots: 3, positions: ["GK", "DEF", "MID"], coachEmail: "pioneersoccer@mnu.edu", conference: "HAAC" },
-  { name: "University of Saint Mary (KS)", code: "USM", division: "NAIA", state: "KS", city: "Leavenworth", rosterSpots: 2, positions: ["MID", "FWD"], coachEmail: "seabirdsoccer@stmary.edu", conference: "HAAC" },
-  { name: "Lindsey Wilson College", code: "LWC", division: "NAIA", state: "KY", city: "Columbia", rosterSpots: 5, positions: ["GK", "DEF", "MID", "FWD"], coachEmail: "blue Raiderssoccer@lwc.edu", conference: "AA" },
-  { name: "Dordt University", code: "DORDT", division: "NAIA", state: "IA", city: "Sioux Center", rosterSpots: 3, positions: ["GK", "DEF", "MID"], coachEmail: "defenderssoccer@dordt.edu", conference: "GPAC" },
-  { name: "Oklahoma Wesleyan University", code: "OKWU", division: "NAIA", state: "OK", city: "Bartlesville", rosterSpots: 4, positions: ["GK", "DEF", "MID", "FWD"], coachEmail: "eaglesoccer@okwu.edu", conference: "NAIA" },
-  { name: "Brescia University", code: "BRESCIA", division: "NAIA", state: "KY", city: "Owensboro", rosterSpots: 2, positions: ["DEF", "FWD"], coachEmail: "menSOCCER@brescia.edu", conference: "AA" },
-  // NJCAA Schools
-  { name: "College of Central Florida", code: "CF", division: "NJCAA", state: "FL", city: "Ocala", rosterSpots: 6, positions: ["GK", "DEF", "MID", "FWD"], coachEmail: "panthersoccer@cf.edu", conference: "Sunshine" },
-  { name: "Iowa Western Community College", code: "IWCC", division: "NJCAA", state: "IA", city: "Council Bluffs", rosterSpots: 4, positions: ["GK", "DEF", "MID", "FWD"], coachEmail: "reiverssoccer@iwcc.edu", conference: "Region XI" },
-  { name: "Cochise College", code: "COCHISE", division: "NJCAA", state: "AZ", city: "Douglas", rosterSpots: 5, positions: ["GK", "DEF", "MID", "FWD"], coachEmail: "apachessoccer@cochise.edu", conference: "ACCAC" },
-  { name: "Georgia State University Perimeter", code: "GPC", division: "NJCAA", state: "GA", city: "Clarkston", rosterSpots: 3, positions: ["GK", "DEF", "FWD"], coachEmail: "georgiapeacockSOCCER@gpc.edu", conference: "Georgia" },
-  { name: "Lansing Community College", code: "LCC", division: "NJCAA", state: "MI", city: "Lansing", rosterSpots: 4, positions: ["GK", "DEF", "MID"], coachEmail: "starstarsoccer@lcc.edu", conference: "MCC" },
-  { name: "Monroe College", code: "MONROE", division: "NJCAA", state: "NY", city: "Bronx", rosterSpots: 5, positions: ["GK", "DEF", "MID", "FWD"], coachEmail: "mustangssoccer@monroecollege.edu", conference: "Hudson Valley" },
+  { name: "University of Florida", division: "D1", state: "FL", city: "Gainesville", rosterSpots: 2, positions: ["GK"], coachEmail: "recruiting@ufl.edu", conference: "SEC", gender: ["women"] },
+  { name: "University of Georgia", division: "D1", state: "GA", city: "Athens", rosterSpots: 2, positions: ["GK"], coachEmail: "recruiting@uga.edu", conference: "SEC",gender: ["women"] },
+  { name: "University of South Carolina", division: "D1", state: "SC", city: "Columbia", rosterSpots: 7, positions: ["DEF", "GK"], coachEmail: "recruiting@sc.edu", conference: "SEC", gender: ["men", "women"] },
+  { name: "University of Tennessee", division: "D1", state: "TN", city: "Knoxville", rosterSpots: 9, positions: ["DEF"], coachEmail: "recruiting@utk.edu", conference: "SEC", gender: ["men", "women"] },
+  { name: "Texas A&M University", division: "D1", state: "TX", city: "College Station", rosterSpots: 1, positions: ["DEF"], coachEmail: "recruiting@tamu.edu", conference: "SEC", gender: ["men", "women"] },
+  { name: "Louisiana State University", division: "D1", state: "LA", city: "Baton Rouge", rosterSpots: 9, positions: ["DEF"], coachEmail: "recruiting@lsu.edu", conference: "SEC", gender: ["men", "women"] },
+  { name: "University of Alabama", division: "D1", state: "AL", city: "Tuscaloosa", rosterSpots: 5, positions: ["DEF", "GK"], coachEmail: "recruiting@ua.edu", conference: "SEC", gender: ["men", "women"] },
+  { name: "Auburn University", division: "D1", state: "AL", city: "Auburn", rosterSpots: 10, positions: ["DEF", "GK"], coachEmail: "recruiting@auburn.edu", conference: "SEC", gender: ["men", "women"] },
+  { name: "University of Missouri", division: "D1", state: "MO", city: "Columbia", rosterSpots: 1, positions: ["DEF"], coachEmail: "recruiting@missouri.edu", conference: "SEC", gender: ["men", "women"] },
+  { name: "Mississippi State University", division: "D1", state: "MS", city: "Starkville", rosterSpots: 12, positions: ["DEF", "GK"], coachEmail: "recruiting@msstate.edu", conference: "SEC", gender: ["men", "women"] },
+  { name: "University of Mississippi", division: "D1", state: "MS", city: "Oxford", rosterSpots: 9, positions: ["DEF"], coachEmail: "recruiting@olemiss.edu", conference: "SEC", gender: ["men", "women"] },
+  { name: "Vanderbilt University", division: "D1", state: "TN", city: "Nashville", rosterSpots: 7, positions: ["GK"], coachEmail: "recruiting@vanderbilt.edu", conference: "SEC", gender: ["men", "women"] },
+  { name: "Arkansas Razorbacks", division: "D1", state: "AR", city: "Fayetteville", rosterSpots: 4, positions: ["DEF"], coachEmail: "recruiting@uark.edu", conference: "SEC", gender: ["men", "women"] },
+  { name: "Kentucky Wildcats", division: "D1", state: "KY", city: "Lexington", rosterSpots: 7, positions: ["GK"], coachEmail: "recruiting@uky.edu", conference: "SEC", gender: ["men", "women"] },
+  { name: "University of North Carolina", division: "D1", state: "NC", city: "Chapel Hill", rosterSpots: 11, positions: ["GK"], coachEmail: "recruiting@unc.edu", conference: "ACC", gender: ["men", "women"] },
+  { name: "Duke University", division: "D1", state: "NC", city: "Durham", rosterSpots: 3, positions: ["DEF", "GK"], coachEmail: "recruiting@duke.edu", conference: "ACC", gender: ["men", "women"] },
+  { name: "North Carolina State", division: "D1", state: "NC", city: "Raleigh", rosterSpots: 4, positions: ["DEF"], coachEmail: "recruiting@ncsu.edu", conference: "ACC", gender: ["men", "women"] },
+  { name: "Wake Forest University", division: "D1", state: "NC", city: "Winston-Salem", rosterSpots: 4, positions: ["DEF", "GK"], coachEmail: "recruiting@wfu.edu", conference: "ACC", gender: ["men", "women"] },
+  { name: "Clemson University", division: "D1", state: "SC", city: "Clemson", rosterSpots: 10, positions: ["DEF", "GK"], coachEmail: "recruiting@clemson.edu", conference: "ACC", gender: ["men", "women"] },
+  { name: "Virginia Tech", division: "D1", state: "VA", city: "Blacksburg", rosterSpots: 7, positions: ["DEF"], coachEmail: "recruiting@vt.edu", conference: "ACC", gender: ["men", "women"] },
+  { name: "University of Michigan", division: "D1", state: "MI", city: "Ann Arbor", rosterSpots: 5, positions: ["DEF", "GK"], coachEmail: "recruiting@umich.edu", conference: "Big Ten", gender: ["men", "women"] },
+  { name: "Michigan State University", division: "D1", state: "MI", city: "East Lansing", rosterSpots: 11, positions: ["DEF"], coachEmail: "recruiting@msu.edu", conference: "Big Ten", gender: ["men", "women"] },
+  { name: "Ohio State University", division: "D1", state: "OH", city: "Columbus", rosterSpots: 4, positions: ["DEF", "GK"], coachEmail: "recruiting@osu.edu", conference: "Big Ten", gender: ["men", "women"] }
 ];
+
+
 
 // ============ STATE LABELS ============
 const stateLabels = {
@@ -770,6 +770,7 @@ function renderColleges() {
   const searchFilter = document.getElementById('filter-search').value.toLowerCase();
 
   let filtered = colleges.filter(c => {
+    if (genderPreference && !c.gender.includes(genderPreference)) return false;
     if (stateFilter && c.state !== stateFilter) return false;
     if (divFilter && c.division !== divFilter) return false;
     if (posFilter && !c.positions.includes(posFilter)) return false;
